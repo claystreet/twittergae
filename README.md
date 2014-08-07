@@ -3,7 +3,8 @@
 **Provided by [Clay Street Online](http://www.claystreet.com) under an MIT License**
 
 Developed for [Sooshi.com](https://www.sooshi.com)
-On Twitter [sooshicom](https://twitter.com/sooshicom)
+
+On Twitter [@sooshicom](https://twitter.com/sooshicom)
 
 ### Overview
 
@@ -23,6 +24,8 @@ tweets = Tweets(TWITTER_API_KEY,
 				
 tweets.update('Hello Twitterverse from twittergae')
 ```
+
+Note: subsequent examples won't show the required credential initialization
 
 ### Send a tweet with location info
 
