@@ -36,7 +36,7 @@ tweets.update('Hello Twitterverse from twittergae',
 			  long='-81.208120')
 ```
 
-### Get the id string of a tweet from the JSON response
+### Get tweet ID from the JSON response
 
 ```python
 #...
