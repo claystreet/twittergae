@@ -142,7 +142,7 @@ The Tweets class demonstrates how simple it would be to expand API
 support to include TwitterTimeline() and other APIs.
 
 
-Please visit [Sooshi.com](https://www.sooshi.com) and post an Ad
+Visit [Sooshi.com](https://www.sooshi.com) and post an Ad
 the next time you have something to sell locally!
 
 I hope you find this code useful!
