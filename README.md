@@ -1,103 +1,144 @@
-#Bootstrap Tipover
+#twittergae
 
 **Provided by [Clay Street Online](http://www.claystreet.com) under an MIT License**
 
-Visit the [live demo site](http://www.claystreet.com/sites/claystreet/dev/bootstrap/tipover/demo.html) for an interactive demo.
+Developed for [Sooshi.com](https://www.sooshi.com)
+On Twitter [sooshicom](https://twitter.com/sooshicom)
 
-### Purpose
+### Overview
 
-Facilitates adding custom CSS styling to Bootstrap Tooltips and Popovers.
+twittergae is a dirt simple interface to twitter for python apps running on GAE (Google App Engine).
 
-### The Problem
+### Send a tweet
 
-The HTML source for Bootstrap Tooltips and Popovers is embedded in the JavaScript code which dynamically inserts
-and removes it from the DOM.  Thus, by default, Bootstrap does not allow the flexibility for multiple tooltip or popover
-styles on a page.
+```python
+from twittergae.tweets import Tweets
+#...
 
-### The Fix
-
-Bootstrap actually provides the hook for the fix by supporting a "template" option when initializing tooltips and popovers.
-The code associated with this "tipover" solution takes advantage of this "template" option to allow a custom class
-to be inserted into the tooltip and popover markup.  CSS can then be generated to provide unique styling using this
-custom class.
-
-### How does it work?
-
-There are 3 key files provided with this "tipover" solution:
-
-1. tipover.js
-2. tooltip-custom.less
-3. popover-custom.less
-
-*tipover.js* - contains two simple functions intended to be invoked when initializing tooltips and popovers in JavaScript.
-These functions return an "option" object that includes a template with the specified custom className included.
-Other tooltip and popover options can be passed as the second parameter.
-
-* ttOptions('className', additionalOptions) - returns tooltip options with a template containing 'tooltip.className'
-* poOptions('className', additionalOptions) - returns popover options with a template containing 'popover.className'
-
-The following Javascript initializes two custom tooltip styles:
-```javascript
-$(document).ready(function() {
-    // initialize all elements with the 'grayTip' class to use the 'tooltip.gray' style
-    $('.grayTip').tooltip(ttOptions('gray')); 
-    
-    // initialize all elements with the 'whiteBlueTip' class to use the 'tooltip.whiteBlue' style
-    // ...additionally, specify the 'placement' option to provide a right-side tooltip
-    $('.whiteBlueTip').tooltip(ttOptions('whiteBlue', {'placement': 'right'})); 
-});
+# Initialize with your twitter credentials
+tweets = Tweets(TWITTER_API_KEY,
+				TWITTER_API_SECRET_KEY,
+				TWITTER_ACCESS_TOKEN,
+				TWITTER_ACCESS_SECRET_TOKEN)
+				
+tweets.update('Hello Twitterverse from twittergae')
 ```
 
-*tooltip-custom.less* - contains less mixins to allow custom tooltip styles to be easily generated.
+### Send a tweet with location info
 
-For example, the 'gray' and 'whiteBlue' styles for the JavaScript above could be generated as follows:
-```css
-.tooltip.gray {
-  .tooltip-custom-opacity(#fff; #555; 90); // text-color, background-color, opacity
-}
-
-.tooltip.whiteBlue {
-  .tooltip-custom-opacity(#08c; #fff; #08c; 90);  // text-color, background-color, border-color, opacity
-}
-
+```python
+#...
+tweets.update('Hello Twitterverse from twittergae',
+              lat='28.669997',
+			  long='-81.208120')
 ```
 
-*popover-custom.less* - contains less mixins to allow custom popover styles to be easily generated.
+### Get the id string of a tweet from the JSON response
 
-Javascript to initialize two custom styled Bootstrap popovers:
-```javascript
-$(document).ready(function() {
-
-    // initialize '.blackPop' elements to use the 'popover.black' style
-    $('.blackPop').popover(poOptions('black', {
-        'placement': 'right',
-        'html': true,
-        'title': 'Custom Black Popover',
-        'content': ' This is my custom popover<br>It is a simple black popover'
-    }));
-    
-    // initialize '.blueWhitePop' elements to use the 'popover.blueWhite' style
-    $('.blueWhitePop').popover(poOptions('blueWhite', {
-        'placement': 'right',
-        'html': true,
-        'title': 'Custom White-Blue Popover',
-        'content': ' This is another popover<br>It is Blue &amp; White'
-    }));
-
-});
+```python
+#...
+response = tweets.update('Hello Twitterverse from twittergae')
+if response.twitter:
+    tweet_id = response.twitter['id_str']
 ```
 
-The associated less file would include the following:
-```css
-.popover.black {
-  .popover-custom-dark(#000); // #000 = content background-color, other colors auto-generated from that
-}
+Note:
+The "response" is simply an urlfetch() response object with an additional
+dict named "twitter" that contains the JSON response data
 
-.popover.blueWhite {
-  .popover-custom(#333, #fff, #fff, #08c, #06a); // full color specification
-}
+```python
+#...
+response = tweets.update('Hello Twitterverse from twittergae')
+if response.status_code == 200:  # check the urlfetch() response object's status code
+    pass  # Do whatever...
 ```
 
-Please look at less/demo.less and demo.html if you need more details.
-I hope you find this useful!
-The [live demo site](http://www.claystreet.com/sites/claystreet/dev/bootstrap/tipover/demo.html)
+### Async tweet using async urlfetch()
+
+```python
+from twittergae.twitterapi import twitter_response
+from twittergae.tweets import Tweets
+#...
+rpc = tweets.update('Hello Twitterverse from twittergae', async='rpc')
+#...
+# do other stuff
+#...
+response = twitter_response(rpc.get_result())
+if response.twitter:
+    tweet_id = response.twitter['id_str']
+```
+
+### Async tweet using tasklet friendly ndb context
+
+```python
+from twittergae.twitterapi import twitter_response
+from twittergae.tweets import Tweets
+#...
+future = tweets.update('Hello Twitterverse from twittergae', async='ndb')
+#...
+# do other stuff
+#...
+response = twitter_response(future.get_result())
+if response.twitter:
+    tweet_id = response.twitter['id_str']
+```
+
+### Fetch a photo and tweet with media & coordinates... asychronously
+
+```python
+from twittergae.gae_send_request import send_request_ndb
+from twittergae.twitterapi import twitter_response
+from twittergae.tweets import Tweets
+#...
+photo_url = 'https://www.google.com/images/srpr/logo11w.png'
+photo_future = send_request_ndb('GET', photo_url)
+#...
+# do other stuff
+#...
+photo_response = photo_future.get_result()
+if photo_response.status_code == 200:
+    tweet_future = tweets.update_with_media(
+	    'Upload With Media from twittergae',
+        media={
+            'filename': 'logo11w.png',
+            'mimetype': 'image/png',
+            'encoding': 'binary',
+            'data': photo_response.content,
+        },
+        lat='28.669997',
+        long='-81.208120')
+    #...
+    # do other stuff
+    #...
+	tweet_response = twitter_response(tweet_future.get_result())
+	if tweet_response.twitter:
+	    tweet_id = tweet_response.twitter['id_str']
+		# do whatever with the tweet response...
+```
+
+### A simple async search example...
+
+```python
+#...
+search_future = tweets.search('sooshi', async='ndb')
+#...
+# do other stuff
+#...
+search_response = twitter_response(search_future.get_result())
+```
+
+### What's not supported
+
+1. There's no support for obtaining credentials from a user
+1. Only the core "tweet" related API methods are supported in the Tweets class
+
+### What you can do
+
+The Tweets class demonstrates how simple it would be to expand API
+support to include TwitterTimeline() and other APIs.
+
+
+Please visit [Sooshi.com](https://www.sooshi.com) and post an Ad
+the next time you have something to sell locally!
+
+I hope you find this code useful!
