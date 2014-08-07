@@ -109,7 +109,8 @@ if photo_response.status_code == 200:
             'data': photo_response.content,
         },
         lat='28.669997',
-        long='-81.208120')
+        long='-81.208120',
+		async='ndb')
     #...
     # do other stuff
     #...
